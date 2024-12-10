@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.removeScrollbar::-webkit-scrollbar{
+  display: none;
+}
+.calcheight{
+  height: calc(100% - 85% - 32px);
+}
