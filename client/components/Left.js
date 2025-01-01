@@ -1,38 +1,29 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { CiSearch } from "react-icons/ci";
 import { TbMessage2Plus } from "react-icons/tb";
 import Profile from './Profile';
-// import { useDispatch, useSelector } from 'react-redux';
-// import { asyncChatUser, asyncGroupDetails } from '@/store/Actions/userActions';
 import { FaPlus } from "react-icons/fa6";
 import { useUser } from '@/providers/UserProvider';
 import Group from './Group'
 
-const left = (props) => {
+const left = ({ setNewChat }) => {
 
-  const { user, chatUser } = useUser();
-
-  const { setNewChat, setClickedId, clickedId, friendArr } = props;
+  const { user, friendArray, chatUser, setChatUser } = useUser();
 
   const [profile, setProfile] = useState(false);
   const [group, setgroup] = useState(false);
-  // const [isVisible, setIsVisible] = useState(clickedId ? false : true)
-  // const dispatch = useDispatch();
 
   const chatHandler = (user) => {
-    // setClickedId(user._id);
+    setChatUser(user)
     
   }
 
   const groupChatHandler = (id) => {
-      dispatch(asyncGroupDetails(id));
-      setClickedId(id);
+      // dispatch(asyncGroupDetails(id));
+      // setClickedId(id);
   }
-
-  // useEffect(() => {}, [user]);
   
-
   return (
     <div className={`h-[100vh] w-[100vw] min-w-[30vmax] md:w-[30vw] bg-[#000000d3] relative`}>
       {profile ? <Profile setProfile={setProfile} /> : ""}
@@ -53,8 +44,8 @@ const left = (props) => {
         </div>
       </div>
       <div className={`w-full h-[78%] px-4 flex flex-col gap-4 overflow-y-auto pt-2 removeScrollbar`}>
-        {friendArr && friendArr.map((e, idx) => (
-          <div key={idx} className={`hover:bg-black cursor-pointer rounded-xl flex items-center px-3 py-2 ${e._id === clickedId ? 'bg-black' : ""}`} onClick={() => chatHandler(e)}>
+        {friendArray && friendArray?.map((e, idx) => (
+          <div key={idx} className={`hover:bg-black cursor-pointer rounded-xl flex items-center px-3 py-2 ${e._id === chatUser._id ? 'bg-black' : ""}`} onClick={() => chatHandler(e)}>
             <div className='bg-white h-12 w-12 rounded-full cursor-pointer overflow-hidden bg-cover'><img src={e.avatar?.url} alt="" /></div>
             <h1 className='ml-5 text-xl text-white'>{e.name}</h1>
           </div>

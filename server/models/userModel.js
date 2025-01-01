@@ -39,11 +39,11 @@ const userModel = new mongoose.Schema({
         type: String
     },
     resetPasswordToken: { type: String, default: "0" },
-    friend: [
-        { type: mongoose.Schema.Types.ObjectId, ref: "user" }
-    ],
-    groups: [
-        { type: mongoose.Schema.Types.ObjectId, ref: "group" }
+    friends: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            default: []
+        },
     ],
     chats: [
         { type: mongoose.Schema.Types.ObjectId, ref: "message" }

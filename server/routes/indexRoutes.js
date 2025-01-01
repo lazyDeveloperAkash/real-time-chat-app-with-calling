@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { isAuthenticated } = require("../middlewares/auth")
-const { homePage, currentUser, userSignup, userSignin, userSignout, chatwithUser, userAvatar, sendMail, otpVarification, forgotPasswordToChange, userUpdate, userResetPassword, invite, newChat, msgUpload, groupInfo, createGroup, groupAvatar, deleteAccount, generateAccessToken } = require("../controllers/indexController");
+const { homePage, currentUser, userSignup, userSignin, userSignout, getChat, userAvatar, sendMail, otpVarification, forgotPasswordToChange, userUpdate, userResetPassword, invite, newChat, msgUpload, groupInfo, createGroup, groupAvatar, deleteAccount, generateAccessToken, chatUser } = require("../controllers/indexController");
 
 router.get("/", homePage);
 router.get("/user", isAuthenticated, currentUser);
@@ -42,13 +42,16 @@ router.post("/upload-profile-picture", isAuthenticated, userAvatar);
 //--------------------------------CRED-------------------------------------------
 
 // invite 
-router.post("/invite", isAuthenticated, invite);
+router.get("/invite/:contact", isAuthenticated, invite);
 
 //new chat
 router.post("/new-chat", isAuthenticated, newChat);
 
 // get details for onclick
-router.post("/chat", isAuthenticated, chatwithUser);
+router.post("/chat", isAuthenticated, chatUser);
+
+// getmessage
+router.post("/messages", isAuthenticated, getChat);
 
 // message upload
 router.post("/msg-upload", isAuthenticated, msgUpload);

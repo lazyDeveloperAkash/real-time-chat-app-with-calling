@@ -1,48 +1,41 @@
 'use client'
-// import { asyncChatUser, asyncNewChat } from '@/store/Actions/userActions'
+import { useUser } from '@/providers/UserProvider'
 import axios from '@/utils/axios'
 import React, { useState } from 'react'
 import { CiSearch } from 'react-icons/ci'
 import { IoMdClose } from 'react-icons/io'
-// import { useDispatch } from 'react-redux'
+import InviteModal from './InviteModal'
 
 
-const newChat = (props) => {
+const newChat = ({ setNewChat }) => {
 
-    const { setNewChat, setClickedId, setFriendArr } = props;
     const [contacts, setContacts] = useState([]);
     const [input, setInput] = useState("");
     const [invite, setInvite] = useState(false);
-    // const dispatch = useDispatch();
+
+    const { setFriendArray, setChatUser } = useUser();
 
     const sendnumberHandler = async (e) => {
         setInput(e.target.value);
-        if(e.target.value.length % 3 === 0) {
+        if (e.target.value.length === 0) {
+            setContacts([]);
+            return;
+        }
+        if (e.target.value.length % 3 === 0) {
             try {
-                let { data } = await axios.post("/invite", { contact: e.target.value });
-                setContacts(data.user);
+                let { data } = await axios.get(`/invite/${e.target.value}`);
+                console.log(data.users)
+                setContacts(data.users);
             } catch (error) {
                 console.log(error)
             }
         }
-        if(e.target.value.length === 10){
-            contacts.map((ele)=>{
-                if(ele.contact != e.target.value) setInvite(true);
-                else setInvite(false);
-        })
-        }
     }
 
-    const chatHandler = (newUser) => {
-        setClickedId(newUser._id);
-        dispatch(asyncNewChat(newUser._id));
-        setFriendArr((oldFriend)=> [newUser, ...oldFriend]);
+    const chatHandler = async (newUser) => {
+        setFriendArray((oldFriend) => [newUser, ...oldFriend]);
+        setChatUser(newUser);
         setNewChat(false);
-        dispatch(asyncChatUser(newUser));
-    }
-
-    const inviteHandler = () => {
-
     }
 
     return (
@@ -55,22 +48,26 @@ const newChat = (props) => {
                     <div className='absolute top-1/2 right-8 transform -translate-y-1/2 cursor-pointer'><CiSearch size={25} /></div>
                 </div>
                 <div className='w-full h-[78vh] px-4 flex flex-col gap-4 overflow-y-auto pt-2 removeScrollbar'>
-                    {invite ? (
-                        <div className='border-black hover:bg-black rounded-xl flex items-center justify-between px-3 py-4'>
-                            <h1 className='ml-5 text-2xl text-white'>{input}</h1>
-                            <h1 className='text-[#4acd8d] cursor-pointer' onClick={inviteHandler}>Invite</h1>
-                        </div>
-
-                    ) : (
-                        contacts && contacts.map((newUser, idx) => (
-                            <div key={idx} className='border-black hover:bg-black rounded-xl flex items-center justify-between px-3 py-4'>
-                                <h1 className='ml-5 text-2xl text-white'>{newUser.name}</h1>
-                                <h1 className='text-[#4acd8d] cursor-pointer' onClick={()=> chatHandler(newUser) }>Chat</h1>
+                    {contacts.length === 0 ?
+                        (input.length === 10 &&
+                            <div className='border-black hover:bg-black rounded-xl flex items-center justify-between px-3 py-4'>
+                                <h1 className='ml-5 text-2xl text-white'>{input}</h1>
+                                <h1 className='text-[#4acd8d] cursor-pointer' onClick={() => setInvite(true)}>Invite</h1>
                             </div>
-                        ))
-                    )}
+                        ) : (
+                            contacts && contacts.map((newUser, idx) => (
+                                <div key={idx} className='border-black hover:bg-black rounded-xl flex items-center justify-between px-3 py-4'>
+                                    <div >
+                                        <h1 className='ml-5 text-2xl text-white'>{newUser.name}</h1>
+                                        <h6 className='ml-5 text-sm text-gray-300'>{newUser.contact}</h6>
+                                    </div>
+                                    <h1 className='text-[#4acd8d] cursor-pointer' onClick={() => chatHandler(newUser)}>Chat</h1>
+                                </div>
+                            ))
+                        )}
                 </div>
             </div>
+            {invite && <InviteModal inviteLink={"hey"} setInvite={setInvite} />}
         </div>
     )
 }

@@ -8,18 +8,20 @@ const UserContext = createContext();
 export const UserProvider = (props) => {
     const [user, setUser] = useState(null);
     const [chatUser, setChatUser] = useState(null);
+    const [friendArray, setFriendArray] = useState(null);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-      if(!user) asyncCurrentUser();
+        if (!user) asyncCurrentUser();
     }, [])
-    
+
 
     const asyncCurrentUser = async () => {
         try {
             setLoading(true);
             const { data } = await Axios.get("/user");
             setUser(data);
+            setFriendArray(data.friends);
             return data;
         } catch (error) {
             console.log(error.response);
@@ -28,7 +30,7 @@ export const UserProvider = (props) => {
         }
     }
 
-    const asyncChatUser = async (id) => {
+    const asyncgetChat = async (id) => {
         try {
             setLoading(true);
             const { data } = await Axios.post("/chat", { id });
@@ -58,7 +60,7 @@ export const UserProvider = (props) => {
     const asyncSinginEmailOrContact = async (emailOrContact, password) => {
         try {
             setLoading(true);
-            const { data } = await Axios.post("/signin", {emailOrContact, password});
+            const { data } = await Axios.post("/signin", { emailOrContact, password });
             setUser(data.user);
             toast.success("Login Succesfull");
             return true;
@@ -220,11 +222,33 @@ export const UserProvider = (props) => {
     const asyncChatUpload = async (msg) => {
         try {
             await Axios.post("/msg-upload", msg);
-        } catch (error) {}
+        } catch (error) { }
     }
 
     return (
-        <UserContext.Provider value={{ user, asyncChatUpload, asyncNewChat, asyncForgetPassChange, asyncOtpVarification, asyncSendEmail, asyncDelete, asyncResetPassword, asyncAvatar, asyncUpdateUser, asyncGroupDetails, asynccreateGroup, asyncSinginEmailOrContact, asyncSingout, asyncChatUser, asyncSingup, loading }}>
+        <UserContext.Provider
+            value={{ 
+                user,
+                friendArray,
+                chatUser,
+                setChatUser,
+                setFriendArray, 
+                asyncChatUpload, 
+                asyncNewChat, 
+                asyncForgetPassChange, 
+                asyncOtpVarification, 
+                asyncSendEmail, 
+                asyncDelete, 
+                asyncResetPassword, 
+                asyncAvatar, 
+                asyncUpdateUser, 
+                asyncGroupDetails, 
+                asynccreateGroup, 
+                asyncSinginEmailOrContact, 
+                asyncSingout, 
+                asyncgetChat, 
+                asyncSingup, 
+                loading }}>
             {props?.children}
         </UserContext.Provider>
     );

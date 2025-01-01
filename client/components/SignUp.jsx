@@ -8,14 +8,12 @@ import React, { useState } from 'react'
 const SignUp = () => {
 
     const [login, setLogin] = useState(false);
-    const [loader, setLoader] = useState(false);
 
-    const { asyncSingup } = useUser();
+    const { asyncSingup, loading } = useUser();
     const router = useRouter();
 
     const submitHandler = async (e) => {
         e.preventDefault();
-        setLoader(!loader);
         const user = {
             name: e.target.name.value,
             email: e.target.email.value,
@@ -23,7 +21,6 @@ const SignUp = () => {
             password: e.target.password.value
         }
         const status = await asyncSingup(user);
-        setLoader(!loader)
         if (status) router.push("/auth");
     }
 
@@ -68,8 +65,8 @@ const SignUp = () => {
                     </form>
                 </div>
             </div>
-            {login ? <Login setLogin={setLogin} setLoader={setLoader} /> : ""}
-            {loader ? <Loader /> : ""}
+            {login ? <Login setLogin={setLogin} /> : ""}
+            {loading ? <Loader /> : ""}
         </div>
     )
 }

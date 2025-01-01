@@ -18,8 +18,8 @@ const page = () => {
 
   // const [user, setUser] = useState(useSelector(state => state.userReducers.user));
 
-  const { user } = useUser();
-  
+  const { user, chatUser } = useUser();
+
   const socket = useSocket();
   if (user) socket.emit("storeClientInfo", { contact: user.contact }); // store user socket id on backend
 
@@ -106,16 +106,16 @@ const page = () => {
       <div className='flex relative overflow-hidden'>
         {newChat ?
           <Suspense fallback={<LeftSkeleton />}>
-            <NewChat setFriendArr={setFriendArr} setNewChat={setNewChat} setClickedId={setClickedId} />
+            <NewChat setFriendArr={setFriendArr} setNewChat={setNewChat} />
           </Suspense>
           :
           <Suspense fallback={<LeftSkeleton />}>
-            <Left friendArr={friendArr} setNewChat={setNewChat} setClickedId={setClickedId} clickedId={clickedId} user={user} />
+            <Left setNewChat={setNewChat} />
           </Suspense>
         }
-        {clickedId ?
+        {chatUser ?
           <Suspense fallback={<RightSkeleton />}>
-            <Right setVideo={setVideo} setAudio={setAudio} onCall={onCall} setOnCall={setOnCall} user={user} clickedId={clickedId} socket={socket} />
+            <Right />
           </Suspense>
           : <BlankRight />}
         {video ?

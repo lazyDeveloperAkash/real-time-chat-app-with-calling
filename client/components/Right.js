@@ -1,22 +1,16 @@
 'use client'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { IoIosCall } from "react-icons/io";
 import { IoIosVideocam } from "react-icons/io";
 import { FaPaperPlane } from "react-icons/fa";
-// import { useDispatch, useSelector } from 'react-redux';
-// import { asyncChatUpload } from '@/store/Actions/userActions';
+import { useUser } from '@/providers/UserProvider';
 
-const Right = (props) => {
+const Right = () => {
 
-    const { setVideo, onCall, setOnCall, setAudio, socket, clickedId } = props;
+    const { user, chatUser,  } = useUser();
 
     const [callType, setCallType] = useState("")
-    const [user, setUser] = useState(useSelector(state => state.userReducers.user));
-    const [chatUser, setChatUser] = useState(null);
     const [message, setMessage] = useState("");
-    const dispatch = useDispatch();
-
-    const receaver = useSelector((state) => state.userReducers.chatUser);
 
     const videoCallHandler = () => {
         setVideo(true);
@@ -136,29 +130,26 @@ const Right = (props) => {
     }, [])
 
     useEffect(() => {
-        if (!chatUser) setChatUser(receaver);
-        else if (receaver && receaver._id != chatUser._id) {
-            setChatUser(receaver);
-
-        }
-    }, [socket.id, receaver])
+        
+    }, [chatUser])
 
     return (
         <>
-            <div className={`w-full h-[100vh] md:w-[70vw] md:block ${clickedId ? "" : "hidden"}  bg-[#312f2f]`}>
+        {
+            (<div className={`w-full h-[100vh] md:w-[70vw] md:block ${chatUser._id ? "" : "hidden"}  bg-[#312f2f]`}>
                 <div className='w-full h-[10%] flex justify-between items-center px-6'>
                     <div className='flex justify-between items-center gap-6'>
                         <div className='bg-white h-14 w-14 rounded-full cursor-pointer overflow-hidden bg-cover'><img src={chatUser && chatUser.avatar?.url} alt="" /></div>
                         <h1 className='text-xl text-white'>{chatUser && chatUser.name}</h1>
                     </div>
-                    {onCall ?
+                    {/* {onCall ?
                         (<div className='h-[80%] w-[15vmax] rounded-full bg-slate-200 flex items-center justify-center cursor-pointer' onClick={callTypeHandler}>On {callType} Call</div>)
-                        :
+                        : */}
                         (<div className='flex items-center mr-6'>
                             <div className='h-12 w-12 rounded-xl hover:bg-[#4acd8d] cursor-pointer flex items-center justify-center' onClick={audioCallHandler}><IoIosCall color='white' size={25} /></div>
                             <div className='h-12 w-12 rounded-xl hover:bg-[#4acd8d] cursor-pointer flex items-center justify-center' onClick={videoCallHandler}><IoIosVideocam color='white' size={25} /></div>
                         </div>)
-                    }
+                    {/* } */}
                 </div>
                 <div id='midArea' key={chatUser} className='h-[80%] w-full bg-[#272727] p-6 overflow-y-scroll relative removeScrollbar'>
                     {chatUser && chatUser.contact ? chatUser.chats.map((e, idx) => (
@@ -184,6 +175,7 @@ const Right = (props) => {
                     </div>
                 </form>
             </div>
+            )}
         </>
     )
 }

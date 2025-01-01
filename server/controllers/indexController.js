@@ -21,8 +21,12 @@ exports.homePage = (req, res, next) => {
 }
 
 exports.currentUser = catchAsyncErrors(async (req, res, next) => {
-    console.log("first")
-    const user = await User.findById(req.id).populate("friend").populate("groups").exec();
+    if(!req.id) return next(new ErrorHandler("Something went wrong!", 404));
+    const user = await User.findById(req.id).populate({
+        path: "friends",
+        select: '+name +contact +_id +avatar'
+    });
+    if (!user) return next(new ErrorHandler("User not found!", 404));
     res.json(user);
 })
 
@@ -95,8 +99,8 @@ exports.userSignin = catchAsyncErrors(async (req, res, next) => {
     if (emailOrContact === "") return next("Please provide email or username!");
     if (password === "") return next("Please provide password!")
 
-    const user = await User.findOne({ $or: [{ email: emailOrContact }, { contact: emailOrContact }] }).select("+password").populate("friend").populate("groups").exec();
-    if (!user) { return next(new ErrorHandler("User not Found with This Email Address", 404)) };
+    const user = await User.findOne({ $or: [{ email: emailOrContact }, { contact: emailOrContact }] }).select("+password").exec();
+    if (!user) { return next(new ErrorHandler("User not Found with This Email or contact Address", 404)) };
     const isMatch = user.comparePassword(password);
     if (!isMatch) return next(new ErrorHandler("Wrong password", 500));
     sendToken(user, 200, res);
@@ -218,23 +222,25 @@ exports.deleteAccount = catchAsyncErrors(async (req, res, next) => {
     })
 });
 
+// add some features
+
 exports.invite = catchAsyncErrors(async (req, res, next) => {
-    const user = await User.find({ contact: { $regex: req.body.contact } }).exec();
-    res.json({ user });
+    //error handling
+    const { contact } = req.params;
+    if(!contact) return next(new ErrorHandler("please provide contact details!", 404));
+    const users = await User.find({ contact: { $regex: contact } }).select(['+name', '+contact', '+_id', '+avatar']).limit(10).exec();
+    res.status(200).json({ users });
 });
 
 exports.newChat = catchAsyncErrors(async (req, res, next) => {
-    const user = await User.findById(req.body.id).exec();
-    const loggedinUser = await User.findById(req.id).exec();
-    loggedinUser.friend.push(user._id);
-    loggedinUser.save();
-    user.friend.push(loggedinUser._id);
-    user.save();
-    res.json({ user });
+    if (req.params.newUserId) return next(new ErrorHandler("User id not available!"), 404);
+    const user = await User.findById(req.params.newUserId).select(['+name', '+contact', '+_id', '+avatar']).exec();
+    if (!user) return next(new ErrorHandler("User not found!"), 404);
+    res.status(200).json({ user });
 });
 
-exports.chatwithUser = catchAsyncErrors(async (req, res, next) => {
-    const { id } = req.body; // Receiver ID
+exports.getChat = catchAsyncErrors(async (req, res, next) => {
+    const { id } = req.params; // Receiver ID
     const userId = req.id;  // Current user ID
 
     const messages = await Message.aggregate([
@@ -283,6 +289,13 @@ exports.chatwithUser = catchAsyncErrors(async (req, res, next) => {
     console.log(decryption(messages))
 });
 
+exports.chatUser = catchAsyncErrors(async (req, res, next) => {
+    if (req.params.id) return next(new ErrorHandler("Please provide an valid id!", 404));
+    const chatUser = User.findById(req.params.id).select(["+name", "+_id", "+contact", "+email"]);
+    if (chatUser) return next(new ErrorHandler("User not found!", 404));
+    res.status(200).json({ chatUser });
+})
+
 
 exports.msgUpload = catchAsyncErrors(async (req, res, next) => {
     var user;
@@ -305,7 +318,7 @@ exports.generateAccessToken = catchAsyncErrors(async (req, res, next) => {
     if (!id) return next(new ErrorHandler("invalid refresh token!", 401));
 
     //get refresh token from database
-    const user = await User.findById(id);;
+    const user = await User.findById(id);
 
     //compare incoming and database refresh token
     if (user?.refreshToken !== refreshToken) return next(new ErrorHandler("invalid refresh expiered!", 401));

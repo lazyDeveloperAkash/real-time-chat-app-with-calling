@@ -4,19 +4,18 @@ import Forget from './Forget';
 import { useRouter } from 'next/navigation';
 import { IoMdClose } from 'react-icons/io';
 import { useUser } from '@/providers/UserProvider';
+import Loader from './Loader';
 
-const Login = ({ setLogin, setLoader }) => {
+const Login = ({ setLogin }) => {
 
-    const { asyncSinginEmailOrContact } = useUser();
+    const { asyncSinginEmailOrContact, loading } = useUser();
     const [forgetPass, setForgetPass] = useState(false);
     const router = useRouter();
 
     const loginSubmitHandler = async (e) => {
         e.preventDefault();
         console.log(e.target.emailOrContact.value)
-        setLoader(true)
         const res = await asyncSinginEmailOrContact(e.target.emailOrContact.value, e.target.password.value);
-        setLoader(false);
         if (res) router.push("/auth");
     }
 
@@ -48,6 +47,7 @@ const Login = ({ setLogin, setLoader }) => {
                 </div>
             </div>
             {forgetPass ? <Forget setForgetPass={setForgetPass} /> : ""}
+            {loading ? <Loader /> : ""}
         </>
     )
 }

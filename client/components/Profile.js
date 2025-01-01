@@ -47,7 +47,7 @@ const Profile = ({ setProfile }) => {
     }
 
     return (
-        <div onClick={() => console.log("first")} className='absolute z-10 h-[100vh] w-[100vw] flex items-center justify-center bg-[#0000007f] overflow-hidden'>
+        <div onClick={(e) => e.target.id === 'profile-container' && setProfile(false) } id='profile-container' className='absolute z-10 h-[100vh] w-[100vw] flex items-center justify-center bg-[#0000007f] overflow-hidden'>
             <div className='w-full md:w-[30vmax] rounded-2xl px-4 bg-black'>
                 <div className='w-full flex justify-end p-4 pb-0'>
                     <div className='flex gap-4 items-center'>
@@ -60,7 +60,7 @@ const Profile = ({ setProfile }) => {
                     <form onSubmit={avatarHandler}>
                         <div onClick={() => inputRef.current.click()}>
                             <div className='h-[30vmax] w-[30vmax] md:h-[12vmax] md:w-[12vmax] rounded-full bg-green-400 cursor-pointer overflow-hidden bg-cover'>
-                                <img className='h-full' src={user && user.avatar.url} />
+                                <img className='h-full' src={user && user?.avatar?.url || 'blankimage.png'} />
                             </div>
                             <input ref={inputRef} className='w-0 h-0' type="file" onChange={() => buttonRef.current.click()} />
                             <button ref={buttonRef} className='h-0 w-0' type='submit'></button>

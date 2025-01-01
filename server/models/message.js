@@ -6,9 +6,10 @@ const messageModel = new mongoose.Schema({
     sender: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
     receaver: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
     msg: { type: String },
-    iv: { type: String }
+    iv: { type: String },
+    timeStamp: { type: Date }
 
-}, { timestamps: true });
+});
 
 
 const Message = mongoose.model("message", messageModel);
