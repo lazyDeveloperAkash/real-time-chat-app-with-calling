@@ -2,7 +2,7 @@ import React from 'react'
 
 const RightSkeleton = () => {
     return (
-        <div class="w-full h-screen md:w-70 md:block hidden bg-[#312F2F]">
+        <div className="w-full h-screen md:w-70 md:block hidden bg-[#312F2F]">
             <div className="w-full h-20 flex justify-between items-center px-6 animate-pulse">
                 <div className='flex items-center gap-6'>
                     <div className="h-14 w-14 rounded-full bg-gray-200"></div>

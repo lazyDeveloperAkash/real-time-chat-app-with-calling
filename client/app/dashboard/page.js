@@ -1,11 +1,12 @@
 'use client'
-import React, { useEffect, useRef, useState, lazy, Suspense, useMemo } from 'react'
+import React, { useEffect, useRef, useState, lazy, Suspense, useMemo, useCallback } from 'react'
 import socketIo from 'socket.io-client';
 import BlankRight from '@/components/BlankRight'
 import LeftSkeleton from '@/components/skeletons/LeftSkeleton'
 import RightSkeleton from '@/components/skeletons/RightSkeleton'
 import { useUser } from '@/providers/UserProvider';
 import { useSocket } from '@/providers/SocketProviders';
+import peer from '@/sevices/peer';
 const Left = lazy(() => import('@/components/Left'))
 const Right = lazy(() => import('@/components/Right'))
 const Video = lazy(() => import('@/components/Video'))
@@ -35,6 +36,29 @@ const page = () => {
   const [isPeerAvailable, setIsPeerAvailable] = useState(null);
   const [callerContact, setCallerContact] = useState("");
   const remotePeer = useRef(null);
+  const [peerStream, setPeerStream] = useState(null);
+
+  useEffect(() => {
+
+    // incoming call
+    socket.on('incoming-call', async ({ callerName, callType, callerContact }) => {
+      if (window.confirm(`${caller.callType} Call from ${callerName}`)) {
+        const ans = await peer.getAnsweer(offer);
+        socket.emit('call-accepted', { peerId: isPeerAvailable.id, contact: caller.contact, name: user.name });
+        if (callType === 'Video') setVideo(true);
+        else setAudio(true);
+      } else socket.emit('call-rejected', { peerId: null, contact: caller.contact, name: user.name });
+    })
+
+    // after accepting call
+
+    return () => {
+      socket.off("incoming-call");
+    }
+  }, [third])
+
+
+
 
   // useEffect(() => {
   //   const fetchUser = async () => {
@@ -100,6 +124,14 @@ const page = () => {
   //   }
   // }, [isPeerAvailable])
 
+  const callHandler = useCallback(async (callType) => {
+    const userMedia = await navigator.mediaDevices.getUserMedia({ audio: true, video: callType === 'video' ? true : false });
+
+    const offer = await peer.getOffer();
+    socket.emit('call-init', { name: user.name, callerContact: user.contact, callType, receaver: chatUser.contact, offer });
+  }, [])
+
+
 
   return (
     <>
@@ -120,7 +152,7 @@ const page = () => {
           : <BlankRight />}
         {video ?
           <Suspense fallback={<div>loading...</div>}>
-            <Video setVideo={setVideo} setOnCall={setOnCall} peer={isPeerAvailable} isOutgoingCall={isOutgoingCall} setIsOutgoingCall={setIsOutgoingCall} remotePeerId={remotePeerId} socket={socket} callerContact={callerContact} />
+            <Video peerStream={peerStream} />
           </Suspense>
           : ""}
         {audio ?

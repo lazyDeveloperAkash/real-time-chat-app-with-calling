@@ -24,7 +24,7 @@ export const UserProvider = (props) => {
             setFriendArray(data.friends);
             return data;
         } catch (error) {
-            console.log(error.response);
+            console.log(error);
         } finally {
             setLoading(false);
         }

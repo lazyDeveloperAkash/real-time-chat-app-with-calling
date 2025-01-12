@@ -8,10 +8,12 @@ import { HiPhoneMissedCall } from "react-icons/hi";
 import { LuRectangleHorizontal } from "react-icons/lu";
 import Draggable from 'react-draggable';
 import { Resizable } from 'react-resizable';
+import { useSocket } from '@/providers/SocketProviders';
+import peer from '@/sevices/peer';
 
 
 const Video = (props) => {
-    const { setVideo, setOnCall, callerContact, isOutgoingCall, setIsOutgoingCall, remotePeerId, peer, socket } = props;
+    const { setVideo, setOnCall, callerContact, isOutgoingCall, setIsOutgoingCall, remotePeerId, } = props;
     const [activeDrags, setActiveDrags] = useState(0);
     const [size, setSize] = useState({ width: 90, height: 90 });
     const draggableRef = useRef(null);
@@ -19,6 +21,7 @@ const Video = (props) => {
     // const call = useRef(null);
     var stream = null;
     var call = null;
+    const socket = useSocket();
 
     const onResize = (event, { size }) => {
         setSize(size);
@@ -84,6 +87,18 @@ const Video = (props) => {
         }
     }, [remotePeerId])
 
+    useEffect(() => {
+        socket.on('receave-stream', async ({offer}) => {
+            const ans = await peer.getAnsweer(offer);
+            
+        })
+
+        return () => {
+            second
+        }
+    }, [third])
+
+
 
     return (
         <>
@@ -104,7 +119,7 @@ const Video = (props) => {
                     <div className='w-full h-[15%] md:h-[20%] flex items-center justify-center'>
                         <div className='flex items-center justify-center gap-[2vmax] rounded-full h-[40%] md:h-[60%] bg-red-200 px-[10%]'>
                             <div className='h-[5vmax] w-[5vmax] md:h-[4vmax] md:w-[4vmax] lg:h-[3vmax] lg:w-[3vmax] rounded-full flex items-center justify-center bg-gray-400'><IoVideocamOff /></div>
-                            <div className='h-[90%] w-[10vmax] rounded-full flex items-center justify-center bg-red-600' onClick={closeHandler}><HiPhoneMissedCall/></div>
+                            <div className='h-[90%] w-[10vmax] rounded-full flex items-center justify-center bg-red-600' onClick={closeHandler}><HiPhoneMissedCall /></div>
                             <div className='h-[5vmax] w-[5vmax] md:h-[4vmax] md:w-[4vmax] lg:h-[3vmax] lg:w-[3vmax] rounded-full flex items-center justify-center bg-gray-400'><IoMdMicOff /></div>
                         </div>
                     </div>
