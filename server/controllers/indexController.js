@@ -92,15 +92,14 @@ exports.userSignup = catchAsyncErrors(async (req, res, next) => {
 });
 
 exports.userSignin = catchAsyncErrors(async (req, res, next) => {
-    if (!req.body) return next(new ErrorHandler("please provide user details"), 404);
     const { emailOrContact, password } = req.body;
 
     // null value check
-    if (emailOrContact === "") return next("Please provide email or username!");
+    if (emailOrContact === "") return next("Please provide email or contact Number!");
     if (password === "") return next("Please provide password!")
 
     const user = await User.findOne({ $or: [{ email: emailOrContact }, { contact: emailOrContact }] }).select("+password").exec();
-    if (!user) { return next(new ErrorHandler("User not Found with This Email or contact Address", 404)) };
+    if (!user) { return next(new ErrorHandler("User not Found with This Email or contact Number", 404)) };
     const isMatch = user.comparePassword(password);
     if (!isMatch) return next(new ErrorHandler("Wrong password", 500));
     sendToken(user, 200, res);

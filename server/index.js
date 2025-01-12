@@ -1,20 +1,22 @@
 require("dotenv").config({ path: "./.env" });
 const express = require('express');
 const app = express();
+const http = require('http');
+const server = http.createServer(app); // Create HTTP server
+const initializeSocketIo = require('./socketapi'); // Import the socket API
 
-//db connection
+// Database connection
 require("./models/database").connectDatabase();
 
-//initialize logger)
+// Initialize logger
 const logger = require("morgan");
 app.use(logger("tiny"));
 
-
-//body-perser (to active req.body)
+// Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// cors
+// CORS configuration
 const cors = require("cors");
 app.use(cors({
     credentials: true,
@@ -25,22 +27,21 @@ app.use(cors({
     ]
 }));
 
-//session & paeser
+// Session & parser
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
-//express file Upload
+// Express file upload
 const fileUpload = require("express-fileupload");
 app.use(fileUpload());
 
 // Routes
 app.use("/api/", require("./routes/indexRoutes"));
 
-//for socket io 
-const { Server } = require('socket.io')
-const io = new Server(4000, {cors: true });
+// Initialize Socket.IO with the server
+const io = initializeSocketIo(server, { cors: { origin: '*' } });
 
-//error Handler
+// Error Handler
 const ErrorHandler = require("./utils/errorHandler");
 const { generatedeErrors } = require("./middlewares/error");
 app.all("*", (req, res, next) => {
@@ -48,4 +49,7 @@ app.all("*", (req, res, next) => {
 });
 app.use(generatedeErrors);
 
-app.listen(process.env.PORT, console.log(`server running on port ${process.env.PORT}`));
+// Start the server
+server.listen(process.env.PORT, () => {
+    console.log(`Server running on port ${process.env.PORT}`);
+});

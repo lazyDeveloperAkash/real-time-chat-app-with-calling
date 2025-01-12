@@ -24,7 +24,6 @@ const newChat = ({ setNewChat }) => {
         if (e.target.value.length % 3 === 0) {
             try {
                 let { data } = await axios.get(`/invite/${e.target.value}`);
-                console.log(data.users)
                 setContacts(data.users);
             } catch (error) {
                 console.log(error)
@@ -33,7 +32,7 @@ const newChat = ({ setNewChat }) => {
     }
 
     const chatHandler = async (newUser) => {
-        setFriendArray((oldFriend) => [newUser, ...oldFriend]);
+        setFriendArray((oldFriend) => [newUser, ...(oldFriend ?? [])]);
         setChatUser(newUser);
         setNewChat(false);
     }
