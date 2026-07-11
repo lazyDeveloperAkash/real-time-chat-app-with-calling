@@ -1,0 +1,14 @@
+FROM node:22-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+# Generate Prisma client (uncomment once schema is ready)
+# RUN npx prisma generate
+
+# Hot-reload with tsx
+CMD ["npx", "tsx", "watch", "src/index.ts"]

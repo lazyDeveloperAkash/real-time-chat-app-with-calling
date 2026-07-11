@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // directUrl = env("DIRECT_URL")  // For Supabase: direct connection for migrations
+}
+
+// ──── USER ────────────────────────────────────────────────
+
+model User {
+  id                 String    @id @default(uuid()) @db.Uuid
+  name               String    @db.VarChar(50)
+  contact            String    @unique @db.VarChar(15)
+  email              String    @unique @db.VarChar(255)
+  password           String
+  avatarFileId       String?   @map("avatar_file_id")
+  avatarUrl          String?   @map("avatar_url") @default("https://api.dicebear.com/9.x/avataaars/svg?seed=default")
+  refreshToken       String?   @map("refresh_token")
+  resetPasswordToken String?   @map("reset_password_token")
+  lastSeen           DateTime  @default(now()) @map("last_seen")
+  isOnline           Boolean   @default(false) @map("is_online")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  sentMessages       Message[] @relation("SentMessages")
+  receivedMessages   Message[] @relation("ReceivedMessages")
+  friends            Friendship[] @relation("UserFriends")
+  friendOf           Friendship[] @relation("FriendOf")
+  groupMemberships   GroupMember[]
+  createdGroups      Group[]   @relation("GroupCreator")
+  conversations      ConversationParticipant[]
+
+  @@map("users")
+}
+
+// ──── FRIENDSHIP ──────────────────────────────────────────
+
+model Friendship {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  friendId  String   @map("friend_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation("UserFriends", fields: [userId], references: [id], onDelete: Cascade)
+  friend    User     @relation("FriendOf", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+  @@map("friendships")
+}
+
+// ──── CONVERSATION (for chat list + ordering) ─────────────
+
+model Conversation {
+  id             String   @id @default(uuid()) @db.Uuid
+  isGroup        Boolean  @default(false) @map("is_group")
+  lastMessageId  String?  @map("last_message_id") @db.Uuid
+  lastMessageAt  DateTime? @map("last_message_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  participants   ConversationParticipant[]
+  messages       Message[]
+  group          Group?
+
+  @@index([lastMessageAt(sort: Desc)])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String   @id @default(uuid()) @db.Uuid
+  conversationId String   @map("conversation_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  unreadCount    Int      @default(0) @map("unread_count")
+  lastReadAt     DateTime? @map("last_read_at")
+  joinedAt       DateTime @default(now()) @map("joined_at")
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+// ──── GROUP ───────────────────────────────────────────────
+
+model Group {
+  id             String    @id @default(uuid()) @db.Uuid
+  name           String    @db.VarChar(100)
+  avatarFileId   String?   @map("avatar_file_id")
+  avatarUrl      String?   @map("avatar_url")
+  creatorId      String    @map("creator_id") @db.Uuid
+  conversationId String    @unique @map("conversation_id") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  creator        User      @relation("GroupCreator", fields: [creatorId], references: [id])
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  members        GroupMember[]
+
+  @@map("groups")
+}
+
+model GroupMember {
+  id       String    @id @default(uuid()) @db.Uuid
+  groupId  String    @map("group_id") @db.Uuid
+  userId   String    @map("user_id") @db.Uuid
+  role     GroupRole  @default(MEMBER)
+  joinedAt DateTime  @default(now()) @map("joined_at")
+
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@map("group_members")
+}
+
+// ──── MESSAGE ─────────────────────────────────────────────
+
+model Message {
+  id             String        @id @default(uuid()) @db.Uuid
+  conversationId String        @map("conversation_id") @db.Uuid
+  senderId       String        @map("sender_id") @db.Uuid
+  content        String        @db.Text
+  iv             String?       // Encryption IV (unique per message)
+  type           MessageType   @default(TEXT)
+  status         MessageStatus @default(SENT)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  conversation   Conversation  @relation(fields: [conversationId], references: [id])
+  sender         User          @relation("SentMessages", fields: [senderId], references: [id])
+
+  // This is a self-referencing nullable FK for "reply to" feature (future)
+  replyToId      String?       @map("reply_to_id") @db.Uuid
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@map("messages")
+
+  // For "received messages" relation on User, we keep it for quick lookups:
+  receiver       User?         @relation("ReceivedMessages", fields: [receiverIdDirect], references: [id])
+  receiverIdDirect String?     @map("receiver_id_direct") @db.Uuid
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  AUDIO_MSG   // Voice message (not a call)
+  VIDEO_MSG   // Video message (not a call)
+  SYSTEM      // "User joined the group", etc.
+}
+
+enum MessageStatus {
+  SENT        // ✓   Server persisted
+  DELIVERED   // ✓✓  Receiver's device received
+  READ        // ✓✓  Receiver opened the chat (blue)
+}
+
+enum GroupRole {
+  ADMIN
+  MEMBER
+}
