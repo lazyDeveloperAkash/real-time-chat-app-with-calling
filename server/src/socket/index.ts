@@ -10,7 +10,6 @@ import { socketAuth } from './auth';
 import { addUserSocket, removeUserSocket, userRoom } from './presence';
 import { registerMessageHandlers } from './handlers/message.handler';
 import { registerPresenceHandlers } from './handlers/presence.handler';
-import { registerCallHandlers } from './handlers/call.handler';
 import type { TypedServer } from './types';
 
 let io: TypedServer | null = null;
@@ -43,7 +42,6 @@ export function initSocket(httpServer: HttpServer): TypedServer {
 
     registerMessageHandlers(io!, socket);
     registerPresenceHandlers(io!, socket);
-    registerCallHandlers(io!, socket);
 
     // Flush any messages that arrived while this user was offline.
     try {

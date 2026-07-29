@@ -23,6 +23,11 @@ const envSchema = z.object({
   SMTP_USER: z.string().email(),
   SMTP_PASS: z.string(),
   ENCRYPTION_KEY: z.string().min(32),
+  // ─── LiveKit (calling) — optional so the server boots without it configured;
+  //     call endpoints return 503 until these are set.
+  LIVEKIT_URL: z.string().default(''),
+  LIVEKIT_API_KEY: z.string().default(''),
+  LIVEKIT_API_SECRET: z.string().default(''),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

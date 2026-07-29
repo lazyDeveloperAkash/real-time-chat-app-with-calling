@@ -9,12 +9,22 @@ export interface ServerToClientEvents {
   'user-typing': (p: { userId: string; conversationId: string; isTyping: boolean }) => void;
   'user-online': (p: { userId: string; isOnline: boolean }) => void;
 
-  // ── Future (Calling) — signaling relay only ──
-  'call:incoming': (p: { from: string; sdp: unknown; callType: string }) => void;
-  'call:answered': (p: { from: string; sdp: unknown }) => void;
-  'call:ice': (p: { from: string; candidate: unknown }) => void;
-  'call:rejected': (p: { from: string }) => void;
-  'call:ended': (p: { from: string }) => void;
+  // ── Calling (ring/invitation channel; media handled by LiveKit) ──
+  'call:incoming': (p: {
+    callId: string;
+    roomName: string;
+    callType: 'AUDIO' | 'VIDEO';
+    conversationId: string;
+    isGroup: boolean;
+    from: { id: string; name: string; avatarUrl: string | null };
+    groupName?: string;
+  }) => void;
+  'call:accepted': (p: { callId: string; userId: string }) => void;
+  'call:rejected': (p: { callId: string; userId: string }) => void;
+  'call:canceled': (p: { callId: string }) => void;
+  'call:ended': (p: { callId: string }) => void;
+  'call:busy': (p: { callId: string; userId: string }) => void;
+  'call:unavailable': (p: { callId: string; userId: string }) => void;
 }
 
 export type MessageAck = { success: true; message: unknown } | { success: false; error: string };
@@ -28,13 +38,8 @@ export interface ClientToServerEvents {
   'message-read': (p: { conversationId: string }) => void;
   typing: (p: { conversationId: string; isTyping: boolean }) => void;
   'join-rooms': (p: { roomIds: string[] }) => void;
-
-  // ── Future (Calling) ──
-  'call:offer': (p: { targetUserId: string; sdp: unknown; callType: string }) => void;
-  'call:answer': (p: { callerUserId: string; sdp: unknown }) => void;
-  'call:ice': (p: { targetUserId: string; candidate: unknown }) => void;
-  'call:reject': (p: { callerUserId: string }) => void;
-  'call:end': (p: { targetUserId: string }) => void;
+  // Call lifecycle is driven over REST (/api/calls/*); the server pushes call:*
+  // notifications on the ServerToClientEvents channel.
 }
 
 export interface SocketData {
