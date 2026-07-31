@@ -37,37 +37,52 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://chatuser:chatpass@postgres:5432/chatapp
-      - REDIS_URL=redis://redis:6379
-      - PORT=8080
-      - ALLOWED_ORIGINS=http://localhost:3000
-      - ACCESS_TOKEN_SECRET=your-access-token-secret-min-32-chars
-      - REFRESH_TOKEN_SECRET=your-refresh-token-secret-min-32-chars
-      - ACCESS_TOKEN_EXPIRE=15m
-      - REFRESH_TOKEN_EXPIRE=7d
-      - IMAGEKIT_PUBLIC_KEY=your-public-key
-      - IMAGEKIT_PRIVATE_KEY=your-private-key
-      - IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your-id
-      - SMTP_HOST=smtp.gmail.com
-      - SMTP_PORT=465
-      - SMTP_USER=your-email@gmail.com
-      - SMTP_PASS=your-app-password
-      - ENCRYPTION_KEY=your-32-byte-hex-key
-      # LiveKit (audio/video calling) — leave blank to disable calling
-      - LIVEKIT_URL=${LIVEKIT_URL:-}
-      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY:-}
-      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET:-}
+      NODE_ENV: development
+      DATABASE_URL: postgresql://chatuser:chatpass@postgres:5432/chatapp
+      REDIS_URL: redis://redis:6379
+      PORT: 8080
+      ALLOWED_ORIGINS: http://localhost:3000
+
+      ACCESS_TOKEN_SECRET: your-access-token-secret-min-32-chars
+      REFRESH_TOKEN_SECRET: your-refresh-token-secret-min-32-chars
+      ACCESS_TOKEN_EXPIRE: 15m
+      REFRESH_TOKEN_EXPIRE: 7d
+
+      IMAGEKIT_PUBLIC_KEY: public_j/GoLIOeC8zmQM7x+V15YhW57bc=
+      IMAGEKIT_PRIVATE_KEY: private_vjLUPb2z3RtFE/glcvz180r3gT0=
+      IMAGEKIT_URL_ENDPOINT: https://ik.imagekit.io/xxqni4yfv
+
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 465
+      SMTP_USER: your-email@gmail.com
+      SMTP_PASS: your-app-password
+
+      ENCRYPTION_KEY: your-32-byte-hex-key
+
+      LIVEKIT_URL: wss://chatly-6yxenoo0.livekit.cloud
+      LIVEKIT_API_KEY: APIBC4sCrCDwwju
+      LIVEKIT_API_SECRET: ZR7cnrpBN7upz37uBTU2AvUQNzDGByETyPecoAafozk
+
     volumes:
-      - ./server/src:/app/src        # Hot-reload source code
-      - ./server/prisma:/app/prisma  # Prisma schema
-      - /app/node_modules            # Prevent overwriting node_modules
+      - ./server/src:/app/src
+      - ./server/prisma:/app/prisma
+      - /app/node_modules
+
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
 
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis-insight
+    ports:
+      - "5540:5540"
+    volumes:
+      - redisinsight_data:/data
+
 volumes:
   postgres_data:
   redis_data:
+  redisinsight_data:
